@@ -1,7 +1,10 @@
 from src.telegramBot import TelegramBot
-import requests
+from src.driveBot import DriveBot
 
-bot = TelegramBot()
-bot.start()
+#bot = TelegramBot()
+#bot.start()
+
+bot = DriveBot()
+print(bot.get_data())
 
 
