@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 import requests
 import os
 import json
+from .driveBot import DriveBot
+from .visualization.vizualize import *
 
 load_dotenv()
 
@@ -27,7 +29,7 @@ class TelegramBot:
                         message_text = message['message']['text']
                         answer_bot = self.create_answer(message_text)
 
-                        self.send_answer(chat_id, answer_bot)
+                        self.send_answer(chat_id, answer_bot[0], answer_bot[1] )
                     except Exception as e:
                         print(e)
                         pass
@@ -44,12 +46,35 @@ class TelegramBot:
         return json.loads(results.content)
 
     def create_answer(self, message_text):
-        if message_text in ["oi", "ola", "eae"]:
-            return 'ola, tudo bem?'
-        else:
-            return 'nao entendi'
 
-    def send_answer(self, chat_id: str, answer: str) -> None:
-        link_to_send = f"{self.url}sendMessage?chat_id={chat_id}&text={answer}"
-        r = requests.get(link_to_send)
-        return None
+        bot = DriveBot()
+        df = bot.get_data()
+
+        if message_text in ["oi", "ola", "eae", "/start"]:
+            return """
+                ola, tudo bem?
+            1 - NPS interno mensal medio por setor\n
+            2 - NPS interno mensal medio por contratacao\n
+            3 - Distribuicao do NPS\n
+            """, False
+        elif message_text == '1':
+            return plot_bar_nps(df), True
+        elif message_text == '2':
+            return plot_bar_cont(df), True
+        elif message_text == '3':
+            return plot_hist_nps(df), True
+        else:
+            return 'selecione uma das opcoes acima'
+
+    def send_answer(self, chat_id: str, answer: str, fig_bool: bool) -> None:
+        if fig_bool:
+            figure = "/home/marcos/Documentos/Projetos/BotTelegram/last_graph.png"
+            file = {
+                "photo": open(figure, "rb")
+            }
+            link_to_send = f"{self.url}sendPhoto?chat_id={chat_id}"
+            requests.post(link_to_send, files=file)
+        else:
+            link_to_send = f"{self.url}sendMessage?chat_id={chat_id}&text={answer}"
+            r = requests.get(link_to_send)
+            return None
