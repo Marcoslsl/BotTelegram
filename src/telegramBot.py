@@ -68,12 +68,10 @@ class TelegramBot:
 
     def send_answer(self, chat_id: str, answer: str, fig_bool: bool) -> None:
         if fig_bool:
-            figure = "/home/marcos/Documentos/Projetos/BotTelegram/last_graph.png"
-            file = {
-                "photo": open(figure, "rb")
-            }
+            answer.seek(0)
+           
             link_to_send = f"{self.url}sendPhoto?chat_id={chat_id}"
-            requests.post(link_to_send, files=file)
+            requests.post(link_to_send, files = dict(photo=answer))
         else:
             link_to_send = f"{self.url}sendMessage?chat_id={chat_id}&text={answer}"
             r = requests.get(link_to_send)
